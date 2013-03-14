@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'beaneater'
 require 'json'
 require 'uri'
@@ -56,10 +57,10 @@ module Stalker
 
     log "Working #{jobs.size} jobs: [ #{jobs.join(' ')} ]"
 
-    jobs.each { |job| beanstalk.watch(job) }
+    jobs.each { |job| beanstalk.tubes.watch(job) }
 
     beanstalk.tubes.watched.each do |tube|
-      beanstalk.ignore(tube) unless jobs.include?(tube)
+      beanstalk.tubes.ignore(tube.name) unless jobs.include?(tube.name)
     end
   rescue Beaneater::NotConnected => e
     failed_connection(e)
@@ -73,7 +74,7 @@ module Stalker
   class JobTimeout < RuntimeError; end
 
   def work_one_job
-    job = beanstalk.jobs.reserve
+    job = beanstalk.tubes.reserve
     name, args = JSON.parse job.body
     log_job_begin(name, args)
     handler = @@handlers[name]

@@ -4,13 +4,13 @@
 # -*- encoding: utf-8 -*-
 
 Gem::Specification.new do |s|
-  s.name = %q{stalker}
-  s.version = "0.9.5"
+  s.name = %q{stalker-be}
+  s.version = "0.1.0"
 
   s.required_rubygems_version = Gem::Requirement.new(">= 0") if s.respond_to? :required_rubygems_version=
-  s.authors = ["Adam Wiggins", "Norman Köhring"]
+  s.authors = ["Norman Köhring"]
   s.date = %q{2013-03-14}
-  s.description = %q{A job queueing and background workers system using Beanstalkd. Inspired by the Minion gem.}
+  s.description = %q{A job queueing and background workers system using Beanstalkd. Forked from original stalker to use beaneater.}
   s.email = %q{n@koehr.in}
   s.executables = ["stalk"]
   s.extra_rdoc_files = [
@@ -25,7 +25,6 @@ Gem::Specification.new do |s|
   ]
   s.homepage = %q{https://github.com/nkoehring/stalker}
   s.require_paths = ["lib"]
-  #s.rubyforge_project = %q{stalker}
   s.rubygems_version = %q{1.8.25}
   s.summary = %q{A job queueing and background workers system using Beanstalkd.}
   s.test_files = [
