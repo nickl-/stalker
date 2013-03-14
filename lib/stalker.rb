@@ -1,4 +1,4 @@
-require 'beanstalk-client'
+require 'beaneater'
 require 'json'
 require 'uri'
 require 'timeout'
@@ -15,15 +15,21 @@ module Stalker
     pri   = opts[:pri]   || 65536
     delay = [0, opts[:delay].to_i].max  
     ttr   = opts[:ttr]   || 120
-    beanstalk.use job
-    beanstalk.put [ job, args ].to_json, pri, delay, ttr
-  rescue Beanstalk::NotConnected => e
+    tube  = beanstalk.tubes[job]
+    job = tube.put [ job, args ].to_json, pri:pri, delay:delay, ttr:ttr
+    job[:id]
+  rescue Beaneater::NotConnected => e
     failed_connection(e)
   end
 
   def job(j, &block)
     @@handlers ||= {}
     @@handlers[j] = block
+  end
+
+  def status(job_id)
+    job = beanstalk.jobs[job_id]
+    job.stats unless job.nil?
   end
 
   def before(&block)
@@ -52,10 +58,10 @@ module Stalker
 
     jobs.each { |job| beanstalk.watch(job) }
 
-    beanstalk.list_tubes_watched.each do |server, tubes|
-      tubes.each { |tube| beanstalk.ignore(tube) unless jobs.include?(tube) }
+    beanstalk.tubes.watched.each do |tube|
+      beanstalk.ignore(tube) unless jobs.include?(tube)
     end
-  rescue Beanstalk::NotConnected => e
+  rescue Beaneater::NotConnected => e
     failed_connection(e)
   end
 
@@ -67,7 +73,7 @@ module Stalker
   class JobTimeout < RuntimeError; end
 
   def work_one_job
-    job = beanstalk.reserve
+    job = beanstalk.jobs.reserve
     name, args = JSON.parse job.body
     log_job_begin(name, args)
     handler = @@handlers[name]
@@ -88,7 +94,7 @@ module Stalker
 
     job.delete
     log_job_end(name)
-  rescue Beanstalk::NotConnected => e
+  rescue Beaneater::NotConnected => e
     failed_connection(e)
   rescue SystemExit
     raise
@@ -140,7 +146,7 @@ module Stalker
   end
 
   def beanstalk
-    @@beanstalk ||= Beanstalk::Pool.new(beanstalk_addresses)
+    @@beanstalk ||= Beaneater::Pool.new(beanstalk_addresses)
   end
 
   def beanstalk_url

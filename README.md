@@ -1,7 +1,7 @@
 Stalker - a job queueing DSL for Beanstalk
 ==========================================
 
-[Beanstalkd](http://kr.github.com/beanstalkd/) is a fast, lightweight queueing backend inspired by mmemcached.  The [Ruby Beanstalk client](http://beanstalk.rubyforge.org/) is a bit raw, however, so Stalker provides a thin wrapper to make job queueing from your Ruby app easy and fun.
+[Beanstalkd](http://kr.github.com/beanstalkd/) is a fast, lightweight queueing backend inspired by mmemcached. Stalker originally is a thin wrapper around the quite raw [Ruby Beanstalk client](http://beanstalk.rubyforge.org/), however, I updated it to use its successor [Beaneater](http://beanstalkd.github.com/beaneater/).
 
 Queueing jobs
 -------------
@@ -13,6 +13,17 @@ From anywhere in your app:
     Stalker.enqueue('email.send', :to => 'joe@example.com')
     Stalker.enqueue('post.cleanup.all')
     Stalker.enqueue('post.cleanup', :id => post.id)
+
+
+Job Status
+----------
+
+The current status of a job can be checked via
+
+    Stalker.status ‹job_id›
+
+The ‹job_id› is a String or Integer. It's returned from Stalker.enqueue.
+
 
 Working jobs
 ------------
@@ -44,9 +55,16 @@ First, make sure you have Beanstalkd installed and running:
     $ sudo port install beanstalkd
     $ beanstalkd
 
-Stalker:
+Stalker - with Bundler:
 
-    $ sudo gem install stalker
+    gem 'stalker', github: 'nkoehring/stalker'
+
+Stalker - with Bundler:
+    $ git clone git://github.com/nkoehring/stalker.git
+    $ cd stalker
+    $ gem build stalker.gemspec
+    $ gem install stalker-<version>.gem
+
 
 Now run a worker using the stalk binary:
 
@@ -66,6 +84,7 @@ In a production environment you may run one or more high-priority workers (limit
 
     $ for i in 1 2; do stalk jobs.rb email.send > log/urgent-worker.log 2>&1; done
     $ for i in 1 2 3 4; do stalk jobs.rb > log/worker.log 2>&1; done
+
 
 Error Handling
 -------------
